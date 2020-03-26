@@ -1057,7 +1057,14 @@ onig_region_copy(OnigRegion* to, OnigRegion* from)
 
 
 /** stack **/
+#ifdef __TRUSTINSOFT_ANALYZER__
+// -1 is not a pointer comparable to any other pointer according to the standard.
+// Let's use another stack address for the analysis.
+static char TIS_INVALID_STACK;
+#define INVALID_STACK_INDEX   ((intptr_t)(&TIS_INVALID_STACK))
+#else
 #define INVALID_STACK_INDEX   -1
+#endif
 
 #define STK_ALT_FLAG               0x0001
 
@@ -2390,7 +2397,7 @@ static int string_cmp_ic(OnigEncoding enc, int case_fold_flag,
 #define ON_STR_END(s)          ((s) == end)
 #define DATA_ENSURE_CHECK1     (s < right_range)
 #define DATA_ENSURE_CHECK(n)   (s + (n) <= right_range)
-#define DATA_ENSURE(n)         if (s + (n) > right_range) goto fail
+#define DATA_ENSURE(n)         if ((n) > right_range - s) goto fail
 
 #define INIT_RIGHT_RANGE    right_range = (UChar* )in_right_range
 
@@ -4839,7 +4846,8 @@ sunday_quick_search_step_forward(regex_t* reg,
 {
   const UChar *s, *se, *t, *p, *end;
   const UChar *tail;
-  int skip, tlen1;
+  int skip;
+  ptrdiff_t tlen1;
   int map_offset;
   OnigEncoding enc;
 
@@ -4852,9 +4860,9 @@ sunday_quick_search_step_forward(regex_t* reg,
   enc = reg->enc;
 
   tail = target_end - 1;
-  tlen1 = (int )(tail - target);
+  tlen1 = tail - target;
   end = text_range;
-  if (end + tlen1 > text_end)
+  if (tlen1 > text_end - end)
     end = text_end - tlen1;
 
   map_offset = reg->map_offset;
@@ -4893,8 +4901,9 @@ sunday_quick_search(regex_t* reg, const UChar* target, const UChar* target_end,
   const UChar *tail;
   int map_offset;
 
-  end = text_range + (target_end - target);
-  if (end > text_end)
+  if (text_range <= text_end - (target_end - target))
+    end = text_range + (target_end - target);
+  else
     end = text_end;
 
   map_offset = reg->map_offset;
