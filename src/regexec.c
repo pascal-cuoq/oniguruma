@@ -4901,8 +4901,9 @@ sunday_quick_search(regex_t* reg, const UChar* target, const UChar* target_end,
   const UChar *tail;
   int map_offset;
 
-  end = text_range + (target_end - target);
-  if (end > text_end)
+  if (text_range <= text_end - (target_end - target))
+    end = text_range + (target_end - target);
+  else
     end = text_end;
 
   map_offset = reg->map_offset;
