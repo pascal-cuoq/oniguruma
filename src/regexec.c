@@ -4850,7 +4850,8 @@ sunday_quick_search_step_forward(regex_t* reg,
 {
   const UChar *s, *se, *t, *p, *end;
   const UChar *tail;
-  int skip, tlen1;
+  int skip;
+  ptrdiff_t tlen1;
   int map_offset;
   OnigEncoding enc;
 
@@ -4863,7 +4864,7 @@ sunday_quick_search_step_forward(regex_t* reg,
   enc = reg->enc;
 
   tail = target_end - 1;
-  tlen1 = (int )(tail - target);
+  tlen1 = tail - target;
   end = text_range;
   if (tlen1 > text_end - end)
     end = text_end - tlen1;
