@@ -1057,7 +1057,14 @@ onig_region_copy(OnigRegion* to, OnigRegion* from)
 
 
 /** stack **/
+#ifdef __TRUSTINSOFT_ANALYZER__
+// -1 is not a pointer comparable to any other pointer according to the standard.
+// Let us use another stack address for the analysis.
+static char TIS_INVALID_STACK;
+#define INVALID_STACK_INDEX   ((intptr_t)(&TIS_INVALID_STACK))
+#else
 #define INVALID_STACK_INDEX   -1
+#endif
 
 #define STK_ALT_FLAG               0x0001
 
